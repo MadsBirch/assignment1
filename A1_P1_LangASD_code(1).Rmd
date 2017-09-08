@@ -38,6 +38,7 @@ N.B. Create a GitHub repository for the Language Development in ASD set of assig
 Set the working directory (the directory with your data and code for these assignments):
 
 ```{r}
+setwd("C:/Users/sdam9/Google Drive/AU/3. Semester/Experimental Methods 3/assignment1")
 
 ```
 
@@ -47,6 +48,16 @@ Load the three data sets, after downloading them from dropbox and saving them in
 * Word data: https://www.dropbox.com/s/8ng1civpl2aux58/token_train.csv?dl=0
 
 ```{r}
+
+dataDemo = read.csv("demo_train(1).csv")
+dataLU = read.csv("LU_train.csv")
+dataToken = read.csv("token_train.csv")
+library(data.table)
+library(ggplot2)
+library(stringr)
+library(tidyverse)
+library(zoo)
+library(plyr)
 
 ```
 
@@ -65,6 +76,10 @@ Tip: Look into the package data.table, or google "how to rename variables in R"
 
 ```{r}
 
+dataDemo= setnames(dataDemo,"Visit", "VISIT")
+
+dataDemo= setnames(dataDemo, "Child.ID", "SUBJ")
+
 ```
 
 2b. Find a way to homogeneize the way "visit" is reported. If you look into the original data sets, you will see that in the LU data and the Token data, Visits are called "visit 1" in stead of just 1 (which is the case in the demographic data set).
@@ -72,6 +87,9 @@ Tip: There is a package called stringr, which will be very handy for you also in
 
 ```{r}
 
+dataDemo$VISIT= str_extract(dataDemo$VISIT, "\\d")
+dataLU$VISIT= str_extract(dataLU$VISIT, "\\d")
+dataToken$VISIT= str_extract(dataToken$VISIT, "\\d")
 
 ```
 
@@ -87,6 +105,12 @@ Tip: You will have to do identical work for both data sets, so to save time on t
 
 
 ```{r}
+
+dataLU$SUBJ  = gsub("\\.", "", dataLU$SUBJ)
+dataDemo$SUBJ  = gsub("\\.", "", dataDemo$SUBJ)
+dataToken$SUBJ  = gsub("\\.", "", dataToken$SUBJ)
+
+
 
 ```
 
@@ -106,6 +130,14 @@ It would be smart to rename the MullenRaw and ExpressiveLangRaw into something y
 
 ```{r}
 
+dataDemo= setnames(dataDemo, "MullenRaw", "nonverbalIQ")
+dataDemo= setnames(dataDemo, "ExpressiveLangRaw", "verbalIQ")
+
+demoSub = select(dataDemo, c("SUBJ", "VISIT", "Ethnicity", "Diagnosis", "Gender", "Age", "ADOS", "nonverbalIQ", "verbalIQ")) 
+
+LUSub = select(dataLU, c("SUBJ", "VISIT", "MOT_MLU", "MOT_LUstd", "CHI_MLU", "CHI_LUstd"))
+
+TokenSub = select(dataToken, c("SUBJ", "VISIT", "types_MOT", "types_CHI", "tokens_MOT", "tokens_CHI"))
 
 ```
 
@@ -116,6 +148,9 @@ Tip: Merge only works for two data frames at the time.
 Tip: Check the number of observations in the datasets before and after merging. What is going on?
 
 ```{r}
+
+datamerge1 = merge(demoSub,LUSub,by= c("SUBJ", "VISIT"))
+datamerge2 = merge(datamerge1, TokenSub, by=c("SUBJ", "VISIT"))
 
 ```
 
@@ -131,6 +166,12 @@ Tip: the final dataset should have as many rows as the the old one.
 
 ```{r}
 
+# rowSub = subset(datamerge2, VISIT==1, c("SUBJ", "ADOS", "nonverbalIQ", "verbalIQ"))
+
+datamerge2$ADOS = na.locf(datamerge2$ADOS, na.rm= FALSE)
+datamerge2$nonverbalIQ = na.locf(datamerge2$nonverbalIQ, na.rm= FALSE)
+datamerge2$verbalIQ = na.locf(datamerge2$verbalIQ, na.rm= FALSE)
+
 ```
 
 Now, we are almost ready to actually start working with the data. However, here are some additional finishing touches:
@@ -145,6 +186,15 @@ Tip: Google "how to rename levels in R".
 
 ```{r}
 
+#datamerge2$SUBJ = as.numeric(datamerge2$SUBJ)
+
+datamerge2$SUBJ = as.numeric(as.factor(datamerge2$SUBJ))
+
+datamerge2$VISIT = as.numeric(datamerge2$VISIT)
+
+datamerge2$Gender = mapvalues(datamerge2$Gender, c("1", "2"),c("F", "M"))
+datamerge2$Diagnosis = mapvalues(datamerge2$Diagnosis, c("A", "B"),c("ASD", "TD"))
+
 
 ```
 
@@ -152,6 +202,8 @@ Tip: Google "how to rename levels in R".
 Save the data set using into a csv file. Hint: look into write.csv()
 
 ```{r}
+
+write.csv(datamerge2, file = "finaldata.csv", row.names = FALSE)
 
 ```
 
