@@ -38,7 +38,7 @@ N.B. Create a GitHub repository for the Language Development in ASD set of assig
 Set the working directory (the directory with your data and code for these assignments):
 
 ```{r}
-setwd("C:/Users/sdam9/Google Drive/AU/3. Semester/Experimental Methods 3/assignment1")
+
 
 ```
 
@@ -186,8 +186,6 @@ Tip: Google "how to rename levels in R".
 
 ```{r}
 
-#datamerge2$SUBJ = as.numeric(datamerge2$SUBJ)
-
 datamerge2$SUBJ = as.numeric(as.factor(datamerge2$SUBJ))
 
 datamerge2$VISIT = as.numeric(datamerge2$VISIT)
@@ -221,6 +219,35 @@ List all kids who:
 
 ```{r}
 
+# filter 1
+filter = filter(datamerge2, datamerge2$CHI_MLU > 2.7)
+
+filter$SUBJ
+
+# filter 2
+
+filter_2 = datamerge2 %>% 
+  filter(VISIT == 1, CHI_MLU < 1.5)
+filter_2$SUBJ 
+
+# filter 3
+
+filter_3=datamerge2%>%
+  group_by(SUBJ) %>%
+  filter(max(VISIT) == 5)
+
+filter_3$SUBJ
+
+
+
+# extras
+#filter_1 = datamerge2 %>%
+  #filter(CHI_MLU > 2.7)
+
+#filter_2 = datamerge2[datamerge2$VISIT==1,]
+
+#filter_2a=filter(filter_2,filter_2$CHI_MLU < 1.5)
+
 
 ```
 
@@ -232,6 +259,16 @@ USING ARRANGE
 
 ```{r}
 
+# 1
+datamerge2 %>%
+  filter(VISIT == 6) %>%
+  arrange(desc(CHI_MLU))
+
+# 2
+
+datamerge2 %>%
+  filter( VISIT == 1) %>%
+  arrange(CHI_MLU)
 
 ```
 
@@ -241,6 +278,16 @@ USING SELECT
 2. What happens if you include the name of a variable multiple times in a select() call?
 
 ```{r}
+# 1
+select_data = datamerge2 %>%
+  filter(Diagnosis == "ASD")%>%
+  select(Diagnosis,CHI_MLU, tokens_CHI)
+
+
+# 2
+select_data2 = datamerge2 %>%
+  filter(Diagnosis == "ASD")%>%
+  select(Diagnosis, Diagnosis,CHI_MLU, tokens_CHI)
 
 ```
 
@@ -252,5 +299,19 @@ USING MUTATE, SUMMARISE and PIPES
 
 ```{r}
 
+# We could not solve this 
+
+# 1
+#datamerge3 = datamerge2 %>% 
+ # group_by(VISIT) %>%
+  #mutate(MEAN_VISIT_MLU = mean(CHI_MLU))
+ 
+ 
+# 2
+#datamerge2 = datamerge2 %>%
+ # group_by(SUBJ) %>%
+  #summarise(MEAN_CHILD_MLU = mean(CHI_MLU))
+
+# 3
 
 ```
