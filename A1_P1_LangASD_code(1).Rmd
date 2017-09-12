@@ -220,7 +220,10 @@ List all kids who:
 ```{r}
 
 # filter 1
-filter = filter(datamerge2, datamerge2$CHI_MLU > 2.7)
+#filter = filter(datamerge2, datamerge2$CHI_MLU > 2.7)
+
+filter_1 = datamerge2 %>%
+  filter(CHI_MLU > 2.7)
 
 filter$SUBJ
 
@@ -234,15 +237,14 @@ filter_2$SUBJ
 
 filter_3=datamerge2%>%
   group_by(SUBJ) %>%
-  filter(max(VISIT) == 5)
+  filter(max(VISIT) < 6)
 
 filter_3$SUBJ
 
 
 
 # extras
-#filter_1 = datamerge2 %>%
-  #filter(CHI_MLU > 2.7)
+
 
 #filter_2 = datamerge2[datamerge2$VISIT==1,]
 
@@ -303,9 +305,9 @@ USING MUTATE, SUMMARISE and PIPES
 
 # 1
 #datamerge3 = datamerge2 %>% 
- # group_by(VISIT) %>%
-  #mutate(MEAN_VISIT_MLU = mean(CHI_MLU))
+ # mutate(MEAN_VISIT_MLU = by(datamerge2$CHI_MLU, datamerge2$VISIT, mean))
  
+#by(datamerge2$CHI_MLU, datamerge2$VISIT, mean)
  
 # 2
 #datamerge2 = datamerge2 %>%
