@@ -304,12 +304,21 @@ USING MUTATE, SUMMARISE and PIPES
 # We could not solve this 
 
 # 1
+
+Data = mutate(Data, GrandAvg = mean(tokens_CHI))
+
 #datamerge3 = datamerge2 %>% 
  # mutate(MEAN_VISIT_MLU = by(datamerge2$CHI_MLU, datamerge2$VISIT, mean))
  
 #by(datamerge2$CHI_MLU, datamerge2$VISIT, mean)
  
 # 2
+
+ChiAvg_AcrossVisits = Data %>%
+  group_by(Child.ID)%>%
+  summarise(ChiAvgWord = mean(tokens_CHI))%>%
+  merge(Data) 
+
 #datamerge2 = datamerge2 %>%
  # group_by(SUBJ) %>%
   #summarise(MEAN_CHILD_MLU = mean(CHI_MLU))
