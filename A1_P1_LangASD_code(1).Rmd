@@ -38,7 +38,8 @@ N.B. Create a GitHub repository for the Language Development in ASD set of assig
 Set the working directory (the directory with your data and code for these assignments):
 
 ```{r}
-
+getwd()
+setwd("C:/Users/sdam9/Documents/EXP3/assignment1")
 
 ```
 
@@ -152,6 +153,7 @@ Tip: Check the number of observations in the datasets before and after merging. 
 datamerge1 = merge(demoSub,LUSub,by= c("SUBJ", "VISIT"))
 datamerge2 = merge(datamerge1, TokenSub, by=c("SUBJ", "VISIT"))
 
+
 ```
 
 Are we done yet?
@@ -165,12 +167,18 @@ Tip: the final dataset should have as many rows as the the old one.
 
 
 ```{r}
+#For these five variables select rows where VISIT==1
+small_sub=subset(select_(datamerge2,"SUBJ", "VISIT", "ADOS", "nonverbalIQ", "verbalIQ"),VISIT==1)
 
-# rowSub = subset(datamerge2, VISIT==1, c("SUBJ", "ADOS", "nonverbalIQ", "verbalIQ"))
+#merge the dataframes. This gives double columns for the variables in question. Except for visit, columns with _old should be deleted and the new kept
+datamerge3=merge(small_sub,datamerge2,by= c("SUBJ"), suffixes = c("","_old"))
 
-datamerge2$ADOS = na.locf(datamerge2$ADOS, na.rm= FALSE)
-datamerge2$nonverbalIQ = na.locf(datamerge2$nonverbalIQ, na.rm= FALSE)
-datamerge2$verbalIQ = na.locf(datamerge2$verbalIQ, na.rm= FALSE)
+#Remove unnecessary columns
+datamerge3=datamerge3[,!names(datamerge3) %in% c("VISIT","ADOS_old","nonverbalIQ_old","verbalIQ_old")]
+
+#rename VISITS_old to VISIT
+datamerge3=dplyr::rename(datamerge3, VISIT =VISIT_old)
+
 
 ```
 
@@ -186,12 +194,12 @@ Tip: Google "how to rename levels in R".
 
 ```{r}
 
-datamerge2$SUBJ = as.numeric(as.factor(datamerge2$SUBJ))
+datamerge3$SUBJ = as.numeric(as.factor(datamerge3$SUBJ))
 
-datamerge2$VISIT = as.numeric(datamerge2$VISIT)
+datamerge3$VISIT = as.numeric(datamerge3$VISIT)
 
-datamerge2$Gender = mapvalues(datamerge2$Gender, c("1", "2"),c("F", "M"))
-datamerge2$Diagnosis = mapvalues(datamerge2$Diagnosis, c("A", "B"),c("ASD", "TD"))
+datamerge3$Gender = mapvalues(datamerge3$Gender, c("1", "2"),c("F", "M"))
+datamerge3$Diagnosis = mapvalues(datamerge3$Diagnosis, c("A", "B"),c("ASD", "TD"))
 
 
 ```
@@ -201,7 +209,7 @@ Save the data set using into a csv file. Hint: look into write.csv()
 
 ```{r}
 
-write.csv(datamerge2, file = "finaldata.csv", row.names = FALSE)
+write.csv(datamerge3, file = "finaldata.csv", row.names = FALSE)
 
 ```
 
@@ -222,33 +230,25 @@ List all kids who:
 # filter 1
 #filter = filter(datamerge2, datamerge2$CHI_MLU > 2.7)
 
-filter_1 = datamerge2 %>%
+filter_1 = datamerge3 %>%
   filter(CHI_MLU > 2.7)
 
 filter$SUBJ
 
 # filter 2
 
-filter_2 = datamerge2 %>% 
+filter_2 = datamerge3 %>% 
   filter(VISIT == 1, CHI_MLU < 1.5)
 filter_2$SUBJ 
 
 # filter 3
 
-filter_3=datamerge2%>%
+filter_3=datamerge3%>%
   group_by(SUBJ) %>%
   filter(max(VISIT) < 6)
 
 filter_3$SUBJ
 
-
-
-# extras
-
-
-#filter_2 = datamerge2[datamerge2$VISIT==1,]
-
-#filter_2a=filter(filter_2,filter_2$CHI_MLU < 1.5)
 
 
 ```
@@ -262,13 +262,13 @@ USING ARRANGE
 ```{r}
 
 # 1
-datamerge2 %>%
+datamerge3 %>%
   filter(VISIT == 6) %>%
   arrange(desc(CHI_MLU))
 
 # 2
 
-datamerge2 %>%
+datamerge3 %>%
   filter( VISIT == 1) %>%
   arrange(CHI_MLU)
 
@@ -281,13 +281,13 @@ USING SELECT
 
 ```{r}
 # 1
-select_data = datamerge2 %>%
+select_data = datamerge3 %>%
   filter(Diagnosis == "ASD")%>%
   select(Diagnosis,CHI_MLU, tokens_CHI)
 
 
 # 2
-select_data2 = datamerge2 %>%
+select_data2 = datamerge3 %>%
   filter(Diagnosis == "ASD")%>%
   select(Diagnosis, Diagnosis,CHI_MLU, tokens_CHI)
 
@@ -305,7 +305,7 @@ USING MUTATE, SUMMARISE and PIPES
 
 # 1
 
-Data = mutate(Data, GrandAvg = mean(tokens_CHI))
+# Data = mutate(Data, GrandAvg = mean(tokens_CHI))
 
 #datamerge3 = datamerge2 %>% 
  # mutate(MEAN_VISIT_MLU = by(datamerge2$CHI_MLU, datamerge2$VISIT, mean))
@@ -314,10 +314,10 @@ Data = mutate(Data, GrandAvg = mean(tokens_CHI))
  
 # 2
 
-ChiAvg_AcrossVisits = Data %>%
-  group_by(Child.ID)%>%
-  summarise(ChiAvgWord = mean(tokens_CHI))%>%
-  merge(Data) 
+#ChiAvg_AcrossVisits = Data %>%
+ # group_by(Child.ID)%>%
+  #summarise(ChiAvgWord = mean(tokens_CHI))%>%
+  #merge(Data) 
 
 #datamerge2 = datamerge2 %>%
  # group_by(SUBJ) %>%
