@@ -38,12 +38,11 @@ Describe the participant samples in the dataset (e.g. by diagnosis, age, etc.). 
 
 [ANSWER]
 
-The variable Diagnosis is not significantly predicted by the variables Gender and nonverbalIQ, meaning that the groups are well balanced on these data. (beta -17, se = 0.87, t-value = -14.41, p < 0.05). (what does that really mean?)
+The variable Diagnosis is not significantly predicted by the variables Gender (beta = 0.3 se = 0.29, z-value = 1.12 , p > 0.05) or nonverbalIQ, meaning that the groups are well balanced on these data (beta = 0.9, se = 0.4887, t-value = -1.825 p > 0.05). (what does that really mean?)
 
 When looking at Age, ASD children are on average 12.7 months older than TD children, meaning that the groups are significantly different by this variable. (beta = -12.7, se = 0.87, t-value = -14.41, p < 0.05). (what does that really mean?)
 
-When looking at verbalIQ, TD children scores significantly higher than ASD children, however, when plotting the variable, it becomes clear that ASD children are roughly divided into two groups. One group that score higher than TD children and one that scores lower. 
-
+When looking at verbalIQ, TD children scores significantly higher than ASD children (beta = 2.79, se = 0.66, t-value = 4.21, p < 0.05), however, when plotting the variable, it becomes clear that ASD children are roughly divided into two groups. One group that score higher than TD children and one that scores lower. 
 
 
 
@@ -228,7 +227,7 @@ r.squaredGLMM(m5)
 # We add MOT_MLU to add the linguistic environment of the kid
 
 
-m6=lmer(CHI_MLU~Diagnosis+VISIT+Gender+ADOS+MOT_MLU+(1+SUBJ|VISIT),data = data)
+m6=lmer(CHI_MLU~Diagnosis*VISIT+Gender+ADOS+MOT_MLU+(1+SUBJ|VISIT),data = data)
 summary(m6)
 r.squaredGLMM(m6)
 
