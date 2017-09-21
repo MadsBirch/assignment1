@@ -75,7 +75,7 @@ datamerge3$SUBJ = as.numeric(as.factor(datamerge3$SUBJ))
 
 datamerge3$VISIT = as.numeric(datamerge3$VISIT)
 
-datamerge3$Gender = mapvalues(datamerge3$Gender, "1","F")
+datamerge3$Gender = mapvalues(datamerge3$Gender, "1","M")
 datamerge3$Diagnosis = mapvalues(datamerge3$Diagnosis, c("A", "B"),c("ASD", "TD"))
 
 
@@ -107,13 +107,28 @@ library(dplyr)
 library(lmerTest)
 library(lme4)
 library(MuMIn)
+library(modelr)
+library(caret)
 
 data_test = read.csv("final_test_data.csv")
+
+# removed gender because test data only had males
+m6=lmer(CHI_MLU~Diagnosis*VISIT+ADOS+MOT_MLU+(1+SUBJ|VISIT),data = data)
+
+m7=lmer(CHI_MLU~Diagnosis*VISIT+ADOS+MOT_MLU+(1+SUBJ|VISIT),data = data_test)
+
+summary(m6)
+summary(m7)
+
+rmse(m6, data)
+rmse(m7, data_test)
+
 
 ```
 
 
-[HERE GOES YOUR ANSWER]
+Reporting
+
 
 ### Exercise 2) Model Selection via Cross-validation (N.B: ChildMLU!)
 
@@ -129,7 +144,33 @@ In this exercise you have to use cross-validation to calculate the predictive er
 
 - Bonus Question 1: How would you go comparing the performance of the basic model and the cross-validated model on the testing set?
 - Bonus Question 2: What is the effect of changing the number of folds? Can you plot RMSE as a function of number of folds?
-- Bonus Question 3: compare the cross-validated predictive error against the actual predictive error on the test data
+- Bonus Question 3: compare the cross-valida
+ted predictive error against the actual predictive error on the test data
+
+```{r}
+
+#merge?
+#Matrix?
+#fold by subject?
+
+create
+merging = 
+
+basic_model = lmer(CHI_MLU ~ Diagnosis+VISIT+(1+SUBJ|VISIT), data = data_test)
+
+fold = createFolds(data, 4)
+
+for (i in createFolds(data, 4)) {
+  
+}
+
+#select data
+#train model
+#test the model
+#save the performance
+
+```
+
 
 ### Exercise 3) Assessing the single child
 
