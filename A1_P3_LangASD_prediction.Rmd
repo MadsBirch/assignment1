@@ -150,8 +150,10 @@ ted predictive error against the actual predictive error on the test data
 ```{r}
 
 #merge?
-#Matrix?
+
 #fold by subject?
+
+unique = data[data$VISIT==1,]
 
 create
 merging = 
@@ -160,10 +162,21 @@ basic_model = lmer(CHI_MLU ~ Diagnosis+VISIT+(1+SUBJ|VISIT), data = data_test)
 
 fold = createFolds(data, 4)
 
-for (i in createFolds(data, 4)) {
-  
-}
+#for (i in data) {
 
+folds = createFolds(unique$SUBJ, 4, list = TRUE, returnTrain = FALSE)
+
+#folds = trainControl(method="repeatedcv", number=4, repeats=4)
+
+
+model = train(CHI_MLU ~ Diagnosis+VISIT+(1+SUBJ|VISIT), data = data, method = "rpart", preProcess = "scale", trControl = folds)
+
+rmse(model)
+  
+
+
+
+#write.csv(file = "test.csv", row.names = FALSE)
 #select data
 #train model
 #test the model
@@ -184,6 +197,8 @@ You want to evaluate:
 (Tip: recreate the equation of the model: Y=Intercept+BetaX1+BetaX2, etc; input the average of the TD group  for each parameter in the model as X1, X2, etc.).
 
 - how does the child fare compared to the model predictions at Visit 6? Is the child below or above expectations? (tip: use the predict() function on Bernie's data only and compare the prediction with the actual performance of the child)
+
+
 
 [HERE GOES YOUR ANSWER]
 
