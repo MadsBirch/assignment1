@@ -115,7 +115,7 @@ How did your models from last time perform? In this exercise you have to compare
 
 ```{r}
 #Load test data
-data_test = read.csv("final_test_data.csv")
+test_data = read.csv("final_test_data.csv")
 
 # removed gender because test data only had males
 #Model on training data
@@ -156,16 +156,15 @@ In this exercise you have to use cross-validation to calculate the predictive er
 ted predictive error against the actual predictive error on the test data
 
 ```{r}
-#merge? Yes, use whole dataset
+# merging train data and test data
+test_data$SUBJ = test_data$SUBJ + 61
 
+full_data = rbind(data, test_data)
 
 
 #----------- Divide data ---------------
-#Create dataset with unique SUBJ
-unique = data[which(data$VISIT==1),]
-#Create fold
-folds=createFolds(unique$SUBJ, k = 4)
-
+#Create fold with unique SUBJ
+folds=createFolds(unique(full_data$SUBJ), k = 4)
 
 #--------Create matarix to store results--------
 cv_empty=matrix(ncol=3, nrow=4)
@@ -178,9 +177,9 @@ n=1
 for (k in folds){
   #---------select data - Select 3/4 of the dataset. data_train---------
   #Create training dataset, data not in fold k
-  data_train=subset(data,!(SUBJ %in% k))
+  data_train=subset(full_data,!(SUBJ %in% k))
   #Create test dataset, data in fold k
-  data_test=subset(data,SUBJ %in% k)
+  data_test=subset(full_data,SUBJ %in% k)
   
   #--------train model - apply model to data_train----------------
   model=lmer(CHI_MLU~Diagnosis*ADOS*VISIT+(1+SUBJ|VISIT),data_train)
@@ -228,6 +227,14 @@ You want to evaluate:
 
 - how does the child fare compared to the model predictions at Visit 6? Is the child below or above expectations? (tip: use the predict() function on Bernie's data only and compare the prediction with the actual performance of the child)
 
+```{r}
+# Bernie is number 63
+
+# model=lmer(CHI_MLU~Diagnosis*ADOS*VISIT+(1+SUBJ|VISIT),data_train)
+
+
+
+```
 
 
 [HERE GOES YOUR ANSWER]
