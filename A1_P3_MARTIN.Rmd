@@ -157,7 +157,7 @@ ted predictive error against the actual predictive error on the test data
 
 ```{r}
 # merging train data and test data
-test_data$SUBJ = test_data$SUBJ + 61
+#test_data$SUBJ = test_data$SUBJ + 61
 
 full_data = rbind(data, test_data)
 
@@ -182,7 +182,7 @@ for (k in folds){
   data_test=subset(full_data,SUBJ %in% k)
   
   #--------train model - apply model to data_train----------------
-  model=lmer(CHI_MLU~Diagnosis*ADOS*VISIT+(1+SUBJ|VISIT),data_train)
+  model= lmer(CHI_MLU~Diagnosis*VISIT+Gender+ADOS+MOT_MLU+verbalIQ+(1+VISIT|SUBJ),data_train)
   #Make predictions based on model
   Prediction=predict(model, type='response')
   #Prints the prediction against the test data
@@ -229,10 +229,52 @@ You want to evaluate:
 
 ```{r}
 # Bernie is number 63
+# Creating dataset without bernie
+no_bernie_data = subset(full_data, (SUBJ != 63))
+lonely_bernie_data = subset(full_data, (SUBJ == 63))
 
-# model=lmer(CHI_MLU~Diagnosis*ADOS*VISIT+(1+SUBJ|VISIT),data_train)
+# creating final model
+model_full = lmer(CHI_MLU~Diagnosis*VISIT+Gender+ADOS+MOT_MLU+verbalIQ+(1+VISIT|SUBJ),no_bernie_data)
+
+summary(model_full)
+
+# getting means of variables for the TD kids, used for input as "x" in model
+mean(full_data$ADOS[full_data$Diagnosis == "TD"])
+mean(full_data$MOT_MLU[full_data$VISIT==6])
+
+mean(full_data$verbalIQ[full_data$Diagnosis == "TD"])
+
+# Calculating predicted mean of TD kids per visit
+MLU_visit1 = 0.71 + 0.72*1 + 0.06*1 + 0.08*1 - 0.02*0.78 + 0.34*3.56 + 0.06*19.81 + 0.24*1*1
+
+MLU_visit2 = 0.71 + 0.72*1 + 0.06*2 + 0.08*1 - 0.02*0.78 + 0.34*3.76 + 0.06*19.81 + 0.24*1*2
+
+MLU_visit3 = 0.71 + 0.72*1 + 0.06*3 + 0.08*1 - 0.02*0.78 + 0.34*3.92 + 0.06*19.81 + 0.24*1*3
+
+MLU_visit4 = 0.71 + 0.72*1 + 0.06*4 + 0.08*1 - 0.02*0.78 + 0.34*4.04 + 0.06*19.81 + 0.24*1*4
+
+MLU_visit5 = 0.71 + 0.72*1 + 0.06*5 + 0.08*1 - 0.02*0.78 + 0.34*4.13 + 0.06*19.81 + 0.24*1*5
+
+MLU_visit6 = 0.71 + 0.72*1 + 0.06*6 + 0.08*1 - 0.02*0.78 + 0.34*4.09 + 0.06*19.81 + 0.24*1*6
+
+# selecting bernie data and MLU
+select_bernie = full_data %>%
+  filter(SUBJ == 63)%>%
+  select(CHI_MLU)
+
+# making a list of MLU of TD kids at the different visits as calculated above.
+MLU_list = c(MLU_visit1, MLU_visit2, MLU_visit3, MLU_visit4, MLU_visit5, MLU_visit6)
+
+# getting the difference between Bernie and the TD over visit in MLU
+select_bernie[, 1] - MLU_list
+
+# bernie MLU at visit 6
+bernie_MLU_visit6 = 0.71 + 0.72*0 + 0.06*6 + 0.08*1 - 0.02*7 + 0.34*3.82 + 0.06*28 + 0.24*0*6
 
 
+Prediction=predict(model_full, lonely_bernie_data[6,], allow.new.levels = TRUE)
+
+select_bernie[6,]-Prediction
 
 ```
 
