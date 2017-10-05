@@ -98,8 +98,19 @@ powerCurveM
 powerCurveVer = powerCurve(model_full, fixed("verbalIQ"),along="SUBJ", nsim=5)
 powerCurveVer
 
+# simulating new data
+participants = 200
+visits = 6
+model = model_full
 
-# How do we use Ricardos function?
+sim_data = createNewData(participants, visits, model)
+
+
+# analysis using simulated data
+# But Ricardos function only produces a new dataset with Visit, SUBJ, Diagnosis, CHI_MLU
+
+# WE GOT THIS FAR
+model_sim = model_full = lmer(CHI_MLU~Diagnosis*Visit+Gender+ADOS+MOT_MLU+verbalIQ+(1+VISIT|SUBJ),sim_data)
 
 
 
@@ -125,10 +136,10 @@ createNewData <- function (participants,visits,model){
   sigmaCorrelation <- as.numeric(attr(vc[[1]],"correlation")[2])
   
   # Create an empty dataframe
-  d=expand.grid(Visit=1:visits,Child.ID=1:participants)
+  d=expand.grid(Visit=1:visits,SUBJ=1:participants)
   # Randomly sample from a binomial (to generate the diagnosis)
   condition <- sample(rep(0:1, participants/2))
-  d$Diagnosis<-condition[d$Child.ID]
+  d$Diagnosis<-condition[d$SUBJ]
   d$Diagnosis[is.na(d$Diagnosis)]<-1
   
   ## Define variance covariance matrices:
@@ -139,7 +150,7 @@ createNewData <- function (participants,visits,model){
   
   ## generate new fake participants (column1=RandomIntercept, column2=RandomSlope)
   u<-mvrnorm(n=participants,
-             mu=c(0,0),Sigma=cov(ranef(model)$Child.ID))
+             mu=c(0,0),Sigma=cov(ranef(model)$SUBJ))
   
   ## now generate fake data:
   ### the outcome is extracted from a gaussian with
