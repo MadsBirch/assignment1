@@ -228,8 +228,7 @@ You want to evaluate:
 - how does the child fare compared to the model predictions at Visit 6? Is the child below or above expectations? (tip: use the predict() function on Bernie's data only and compare the prediction with the actual performance of the child)
 
 ```{r}
-# Bernie is number 63
-# Creating dataset without bernie
+# Creating a dataset without bernie and one with ONLY bernie (Bernie is number 63)
 no_bernie_data = subset(full_data, (SUBJ != 63))
 lonely_bernie_data = subset(full_data, (SUBJ == 63))
 
