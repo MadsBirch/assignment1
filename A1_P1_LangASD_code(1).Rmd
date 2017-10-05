@@ -38,8 +38,8 @@ N.B. Create a GitHub repository for the Language Development in ASD set of assig
 Set the working directory (the directory with your data and code for these assignments):
 
 ```{r}
-getwd()
-setwd("C:/Users/sdam9/Documents/EXP3/assignment1")
+#getwd()
+#setwd("C:/Users/sdam9/Documents/EXP3/assignment1")
 
 ```
 

@@ -21,6 +21,12 @@ How much power does your study have (if your model estimates are quite right)?
 
 ```{r}
 
+
+# favorite model
+model_full = lmer(CHI_MLU~Diagnosis*VISIT+Gender+ADOS+MOT_MLU+verbalIQ+(1+VISIT|SUBJ),no_bernie_data)
+
+
+
 ```
 
 
