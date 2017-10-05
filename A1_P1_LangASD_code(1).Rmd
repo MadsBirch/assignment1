@@ -39,7 +39,7 @@ Set the working directory (the directory with your data and code for these assig
 
 ```{r}
 #getwd()
-#setwd("C:/Users/sdam9/Documents/EXP3/assignment1")
+setwd("C:/Users/sdam9/Documents/EXP3/assignment1")
 
 ```
 

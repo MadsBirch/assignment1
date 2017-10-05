@@ -21,12 +21,40 @@ How much power does your study have (if your model estimates are quite right)?
 
 ```{r}
 
+library(simr)
+library(MASS)
 
 # favorite model
-model_full = lmer(CHI_MLU~Diagnosis*VISIT+Gender+ADOS+MOT_MLU+verbalIQ+(1+VISIT|SUBJ),no_bernie_data)
+model_full = lmer(CHI_MLU~Diagnosis*VISIT+Gender+ADOS+MOT_MLU+verbalIQ+(1+VISIT|SUBJ),full_data)
+#rmse(full_data, model_full)
+
+model_sub = lmer(CHI_MLU~Diagnosis+VISIT+Gender+ADOS+MOT_MLU+verbalIQ+(1+VISIT|SUBJ),full_data)
 
 
+power_VISIT= powerSim(model_sub, fixed("VISIT"), nsim= 10)
+power_VISIT
 
+ 
+power_Diagnosis= powerSim(model_sub, fixed("Diagnosis"), nsim= 10)
+power_Diagnosis
+
+power_Gender= powerSim(model_sub, fixed("Gender"), nsim= 10)
+power_Gender
+
+power_ADOS= powerSim(model_sub, fixed("ADOS"), nsim= 10)
+power_ADOS
+
+power_MOT_MLU= powerSim(model_sub, fixed("MOT_MLU"), nsim= 10)
+power_MOT_MLU
+
+power_verbalIQ= powerSim(model_sub, fixed("verbalIQ"), nsim= 10)
+power_verbalIQ
+
+power_INT = powerSim(model_full, fixed("VISIT*Diagnosis"), nsim= 10)
+power_INT
+
+# Hvad betyder power outputtet for de enkelte fixed effects? Hvad kan vi bruge det til?
+# Power fra interaction er 0%
 ```
 
 
@@ -40,6 +68,39 @@ How would you perform a more conservative power analysis?
 - Report the power analysis and comment on what you can (or cannot) use its estimates for.
 
 ```{r}
+
+# minimum effects sizes for each fixed effect
+
+fixef(model_full)["VISIT"] = 0.1
+fixef(model_full)["DiagnosisTD"] = 0.1
+fixef(model_full)["GenderM"] = 0.1
+fixef(model_full)["ADOS"] = 0.1
+fixef(model_full)["MOT_MLU"] = 0.1
+fixef(model_full)["verbalIQ"] = 0.1
+
+# assesing power for each fixed effect by SUBJ
+# VISIT has a power of 0% over all 61 SUBJ, is that why we need Ricardos fucntion to generate more data?
+powerCurveV = powerCurve(model_full, fixed("VISIT"),along="SUBJ", nsim=5)
+powerCurveV
+
+powerCurveD = powerCurve(model_full, fixed("DiagnosisTD"),along="SUBJ", nsim=5)
+powerCurveD
+
+powerCurveG = powerCurve(model_full, fixed("GenderM"),along="SUBJ", nsim=5)
+powerCurveG
+
+powerCurveA = powerCurve(model_full, fixed("ADOS"),along="SUBJ", nsim=5)
+powerCurveA
+
+powerCurveM = powerCurve(model_full, fixed("MOT_MLU"),along="SUBJ", nsim=5)
+powerCurveM
+
+powerCurveVer = powerCurve(model_full, fixed("verbalIQ"),along="SUBJ", nsim=5)
+powerCurveVer
+
+
+# How do we use Ricardos function?
+
 
 
 ### Riccardo's clumsy function to simulate new participants
@@ -91,6 +152,9 @@ createNewData <- function (participants,visits,model){
   
   return(d)
 }
+
+
+
 ```
 
 
