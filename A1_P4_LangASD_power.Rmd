@@ -26,7 +26,6 @@ library(MASS)
 
 # favorite model
 model_full = lmer(CHI_MLU~Diagnosis*VISIT+Gender+ADOS+MOT_MLU+verbalIQ+(1+VISIT|SUBJ),full_data)
-#rmse(full_data, model_full)
 
 model_sub = lmer(CHI_MLU~Diagnosis+VISIT+Gender+ADOS+MOT_MLU+verbalIQ+(1+VISIT|SUBJ),full_data)
 
@@ -150,7 +149,7 @@ createNewData <- function (participants,visits,model){
   
   ## generate new fake participants (column1=RandomIntercept, column2=RandomSlope)
   u<-mvrnorm(n=participants,
-             mu=c(0,0),Sigma=cov(ranef(model)$SUBJ))
+             mu=c(0,0),Sigma = Sigma.u)
   
   ## now generate fake data:
   ### the outcome is extracted from a gaussian with
@@ -174,6 +173,16 @@ createNewData <- function (participants,visits,model){
 Assume you have only the resources to collect 30 kids (15 with ASD and 15 TDs). Identify the power for each relevant effect and discuss whether it's worth to run the study and why.
 
 ```{r}
+
+# Outputs of power analysis
+powerCurveV # 0% power at 30 particpants
+powerCurveD # 0% power at 30 particpants
+powerCurveG # 0% power at 30 particpants
+powerCurveA # 0% power at 30 particpants
+powerCurveM # 60% power at 30 particpants
+powerCurveVer # 100 power at 30 particpants
+
+# All in all, it only makes sense to run the study on 30 participants if we were interested in only gender and verbal IQ. Since we're interested in the effect of diagnosis, the study should't be run.
 
 ```
 

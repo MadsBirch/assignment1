@@ -26,6 +26,7 @@ N.B. There are several datasets for this exercise, so pay attention to which one
 #Load library
 library(data.table)
 library(ggplot2)
+library(stringi)
 library(stringr)
 library(tidyverse)
 library(zoo)
@@ -37,6 +38,7 @@ library(MuMIn)
 library(modelr)
 library(caret)
 library(ModelMetrics)
+
 
 #Load data
 demo_test = read.csv("demo_test.csv")
