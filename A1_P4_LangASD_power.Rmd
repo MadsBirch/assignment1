@@ -79,11 +79,14 @@ fixef(model_full)["verbalIQ"] = 0.1
 
 # assesing power for each fixed effect by SUBJ
 # VISIT has a power of 0% over all 61 SUBJ, is that why we need Ricardos fucntion to generate more data?
-powerCurveV = powerCurve(model_full, fixed("VISIT"),along="SUBJ", nsim=5)
+powerCurveV = powerCurve(model_sub, fixed("VISIT"),along="SUBJ", nsim=5)
 powerCurveV
 
-powerCurveD = powerCurve(model_full, fixed("DiagnosisTD"),along="SUBJ", nsim=5)
+powerCurveD = powerCurve(model_sub, fixed("DiagnosisTD"),along="SUBJ", nsim=5)
 powerCurveD
+
+powerCurveVD = powerCurve(model_full, fixed("VISIT:DiagnosisTD"),along="SUBJ", nsim=5)
+powerCurveVD
 
 powerCurveG = powerCurve(model_full, fixed("GenderM"),along="SUBJ", nsim=5)
 powerCurveG
@@ -175,14 +178,14 @@ Assume you have only the resources to collect 30 kids (15 with ASD and 15 TDs). 
 ```{r}
 
 # Outputs of power analysis
-powerCurveV # 0% power at 30 particpants
+powerCurveV # 100% power at 30 particpants
 powerCurveD # 0% power at 30 particpants
 powerCurveG # 0% power at 30 particpants
 powerCurveA # 0% power at 30 particpants
 powerCurveM # 60% power at 30 particpants
 powerCurveVer # 100 power at 30 particpants
 
-# All in all, it only makes sense to run the study on 30 participants if we were interested in only gender and verbal IQ. Since we're interested in the effect of diagnosis, the study should't be run.
+# All in all, it only makes sense to run the study on 30 participants if we were interested in only visit, gender and verbal IQ. Since we're interested in the effect of diagnosis, the study should't be run.
 
 ```
 
