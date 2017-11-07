@@ -20,37 +20,47 @@ How much power does your study have (if your model estimates are quite right)?
 - Report the power analysis and comment on what you can (or cannot) use its estimates for.
 
 ```{r}
+#------ WD ------
+wd=getwd()
+setwd(wd)
 
+#------ Load library ------ 
 library(simr)
 library(MASS)
 
-# favorite model
+#------ favorite model ------
 model_full = lmer(CHI_MLU~Diagnosis*VISIT+Gender+ADOS+MOT_MLU+verbalIQ+(1+VISIT|SUBJ),full_data)
 
 model_sub = lmer(CHI_MLU~Diagnosis+VISIT+Gender+ADOS+MOT_MLU+verbalIQ+(1+VISIT|SUBJ),full_data)
 
-
-power_VISIT= powerSim(model_sub, fixed("VISIT"), nsim= 10)
+#------ Power simulations ------
+power_VISIT= powerSim(model_sub, fixed("VISIT"), nsim= 200)
 power_VISIT
-
+#Power = 100, confidence interval 98.17 - 100, unknown test with effect size = 0.19
  
-power_Diagnosis= powerSim(model_sub, fixed("Diagnosis"), nsim= 10)
+power_Diagnosis= powerSim(model_sub, fixed("Diagnosis"), nsim= 200)
 power_Diagnosis
+#Power = 14.50, confidence interval 9.93 - 20.16, Likelihood ratio
 
-power_Gender= powerSim(model_sub, fixed("Gender"), nsim= 10)
+power_Gender= powerSim(model_sub, fixed("Gender"), nsim= 200)
 power_Gender
+#Power = 14.00, confidence interval 9.51 - 19.59, Likelihood ratio
 
-power_ADOS= powerSim(model_sub, fixed("ADOS"), nsim= 10)
+power_ADOS= powerSim(model_sub, fixed("ADOS"), nsim= 200)
 power_ADOS
+#Power = 11.00, confidence interval 7.02 - 16.18, unknown test with effect size = -0.015
 
-power_MOT_MLU= powerSim(model_sub, fixed("MOT_MLU"), nsim= 10)
+power_MOT_MLU= powerSim(model_sub, fixed("MOT_MLU"), nsim= 200)
 power_MOT_MLU
+#Power = 100, confidence interval 98.17 - 100, unknown test with effect size = 0.34
 
-power_verbalIQ= powerSim(model_sub, fixed("verbalIQ"), nsim= 10)
+power_verbalIQ= powerSim(model_sub, fixed("verbalIQ"), nsim= 200)
 power_verbalIQ
+#Power = 100, confidence interval 98.17 - 100, unknown test with effect size = 0.063
 
-power_INT = powerSim(model_full, fixed("VISIT*Diagnosis"), nsim= 10)
+power_INT = powerSim(model_full, fixed("VISIT*Diagnosis"), nsim= 200)
 power_INT
+#Power = 0, confidence interval 0 - 1.83, unknown test
 
 # Hvad betyder power outputtet for de enkelte fixed effects? Hvad kan vi bruge det til?
 # Power fra interaction er 0%
@@ -78,7 +88,6 @@ fixef(model_full)["MOT_MLU"] = 0.1
 fixef(model_full)["verbalIQ"] = 0.1
 
 # assesing power for each fixed effect by SUBJ
-# VISIT has a power of 0% over all 61 SUBJ, is that why we need Ricardos fucntion to generate more data?
 powerCurveV = powerCurve(model_sub, fixed("VISIT"),along="SUBJ", nsim=5)
 powerCurveV
 
@@ -105,10 +114,11 @@ participants = 200
 visits = 6
 model = model_full
 
+
+#------ analysis using simulated data ------
 sim_data = createNewData(participants, visits, model)
 
 
-# analysis using simulated data
 # But Ricardos function only produces a new dataset with Visit, SUBJ, Diagnosis, CHI_MLU
 
 # WE GOT THIS FAR

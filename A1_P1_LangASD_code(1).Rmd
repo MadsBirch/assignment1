@@ -38,8 +38,9 @@ N.B. Create a GitHub repository for the Language Development in ASD set of assig
 Set the working directory (the directory with your data and code for these assignments):
 
 ```{r}
-#getwd()
-setwd("C:/Users/sdam9/Documents/EXP3/assignment1")
+#------ Working directory ------
+wd=getwd()
+setwd(wd)
 
 ```
 
@@ -49,16 +50,19 @@ Load the three data sets, after downloading them from dropbox and saving them in
 * Word data: https://www.dropbox.com/s/8ng1civpl2aux58/token_train.csv?dl=0
 
 ```{r}
-
-dataDemo = read.csv("demo_train(1).csv")
-dataLU = read.csv("LU_train.csv")
-dataToken = read.csv("token_train.csv")
+#------ Load library ------
 library(data.table)
 library(ggplot2)
 library(stringr)
 library(tidyverse)
 library(zoo)
 library(plyr)
+
+#------ Load data ------
+dataDemo = read.csv("demo_train(1).csv")
+dataLU = read.csv("LU_train.csv")
+dataToken = read.csv("token_train.csv")
+
 
 ```
 
@@ -87,7 +91,7 @@ dataDemo= setnames(dataDemo, "Child.ID", "SUBJ")
 Tip: There is a package called stringr, which will be very handy for you also in future assignments. We will return to this package later, but for now use the str_extract () to extract only the number from the variable Visit in each data set. Tip: type ?str_extract() after loading the library, for examples of how to use it.
 
 ```{r}
-
+#\\d is a regular expression meaning digit, so only the digits are extracted
 dataDemo$VISIT= str_extract(dataDemo$VISIT, "\\d")
 dataLU$VISIT= str_extract(dataLU$VISIT, "\\d")
 dataToken$VISIT= str_extract(dataToken$VISIT, "\\d")
@@ -106,7 +110,7 @@ Tip: You will have to do identical work for both data sets, so to save time on t
 
 
 ```{r}
-
+#gsub("x","y",df) replaces x with y in the dataframe. \\. is a general expression for punctuation
 dataLU$SUBJ  = gsub("\\.", "", dataLU$SUBJ)
 dataDemo$SUBJ  = gsub("\\.", "", dataDemo$SUBJ)
 dataToken$SUBJ  = gsub("\\.", "", dataToken$SUBJ)
@@ -130,10 +134,11 @@ The variables we need are: Child.ID, Visit, Ethnicity, Diagnosis, Gender, Age, A
 It would be smart to rename the MullenRaw and ExpressiveLangRaw into something you can remember (i.e. nonVerbalIQ, verbalIQ)
 
 ```{r}
-
+#------ Rename variables to something more intuitive ------
 dataDemo= setnames(dataDemo, "MullenRaw", "nonverbalIQ")
 dataDemo= setnames(dataDemo, "ExpressiveLangRaw", "verbalIQ")
 
+#------ Make subset of relevant variables ------
 demoSub = select(dataDemo, c("SUBJ", "VISIT", "Ethnicity", "Diagnosis", "Gender", "Age", "ADOS", "nonverbalIQ", "verbalIQ")) 
 
 LUSub = select(dataLU, c("SUBJ", "VISIT", "MOT_MLU", "MOT_LUstd", "CHI_MLU", "CHI_LUstd"))
@@ -149,7 +154,7 @@ Tip: Merge only works for two data frames at the time.
 Tip: Check the number of observations in the datasets before and after merging. What is going on?
 
 ```{r}
-
+#Merge the datasets
 datamerge1 = merge(demoSub,LUSub,by= c("SUBJ", "VISIT"))
 datamerge2 = merge(datamerge1, TokenSub, by=c("SUBJ", "VISIT"))
 
@@ -193,11 +198,13 @@ Tip: as.numeric() might be a useful function, but not alone.
 Tip: Google "how to rename levels in R".
 
 ```{r}
-
+#Make subject numeric
 datamerge3$SUBJ = as.numeric(as.factor(datamerge3$SUBJ))
 
+#Make visit numeric
 datamerge3$VISIT = as.numeric(datamerge3$VISIT)
 
+#Label levels in gender and diagnosis
 datamerge3$Gender = mapvalues(datamerge3$Gender, c("1", "2"),c("F", "M"))
 datamerge3$Diagnosis = mapvalues(datamerge3$Diagnosis, c("A", "B"),c("ASD", "TD"))
 
@@ -233,7 +240,7 @@ List all kids who:
 filter_1 = datamerge3 %>%
   filter(CHI_MLU > 2.7)
 
-filter$SUBJ
+unique(filter_1$SUBJ)
 
 # filter 2
 
@@ -247,7 +254,7 @@ filter_3=datamerge3%>%
   group_by(SUBJ) %>%
   filter(max(VISIT) < 6)
 
-filter_3$SUBJ
+unique(filter_3$SUBJ)
 
 
 
@@ -324,5 +331,16 @@ USING MUTATE, SUMMARISE and PIPES
   #summarise(MEAN_CHILD_MLU = mean(CHI_MLU))
 
 # 3
+
+#1
+datamerge3 = mutate(datamerge3, GrandAvg = mean(tokens_CHI))
+
+#2
+ChiAvg_AcrossVisits = select_(datamerge3, "SUBJ", "tokens_CHI") %>%
+  group_by(SUBJ)%>%
+  summarise(ChiAvgWord = mean(tokens_CHI)) %>%
+  merge(datamerge3)
+
+#3 when we're interested in development, the mean doesn't tell us much
 
 ```

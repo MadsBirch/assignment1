@@ -38,11 +38,11 @@ Describe the participant samples in the dataset (e.g. by diagnosis, age, etc.). 
 
 [ANSWER]
 
-The variable Diagnosis is not significantly predicted by the variables Gender (beta = 0.3 se = 0.29, z-value = 1.12 , p > 0.05) or nonverbalIQ, meaning that the groups are well balanced on these data (beta = 0.9, se = 0.4887, t-value = -1.825 p > 0.05). (what does that really mean?)
+Diagnosis did not significantly predict gender (b = 0.3 SE = 0.29, z = 1.12 , p > 0.05) or non-verbal IQ (beta = 0.9, se = 0.4887, t(350) = -1.83 p > 0.05) in the children. Therefore the two groups are evenly matched on these variables.
 
-When looking at Age, ASD children are on average 12.7 months older than TD children, meaning that the groups are significantly different by this variable. (beta = -12.7, se = 0.87, t-value = -14.41, p < 0.05). (what does that really mean?)
+Diagnosis significantly predicted age (b = -12.7, SE = 0.87 ,t(344) = -14.41, p < 0.05). The mean age of the ASD children was 12.7 months older than that of the TD children, meaning that agewise, the two groups were not evenly matched.
 
-When looking at verbalIQ, TD children scores significantly higher than ASD children (beta = 2.79, se = 0.66, t-value = 4.21, p < 0.05), however, when plotting the variable, it becomes clear that ASD children are roughly divided into two groups. One group that score higher than TD children and one that scores lower. 
+In addition to age, diagnosis also significantly predicted verbal IQ (b = 2.79, SE = 0.66, t(350) = 4.21, p < 0.05). However, when plotting the verbal IQ, it becomes clear that ASD children are roughly divided into two groups. One group that scores higher than TD children and one that scores lower.
 
 
 
@@ -88,7 +88,7 @@ Load necessary libraries : what will you need?
 - e.g. mixed effects models
 
 ```{r Load Libraries}
-
+#------ Load library ------
 library(data.table)
 library(ggplot2)
 library(stringr)
@@ -110,10 +110,13 @@ library(MuMIn)
 - Load the data you saved last time (use read_csv(fileName))
 
 ```{r Load Data}
+#------ working directory ------
+wd=getwd()
+setwd(wd)
 
-getwd()
-locpath= "C:/Users/sdam9/Documents/EXP3/assignment1"
-setwd(locpath)
+wd
+
+#------ load data ------
 data = read.csv("finaldata.csv")
 
 ```
@@ -127,12 +130,14 @@ Make sure the variables are in the right format.
 Describe the characteristics of the two groups of participants and whether the two groups are well matched.
 
 ```{r}
+#------ Visualizing data ------
 ggplot(data, aes(Diagnosis,CHI_MLU))+geom_boxplot()
 ggplot(data, aes(Diagnosis,CHI_MLU))+geom_violin()
 ggplot(data, aes(Diagnosis, verbalIQ))+geom_boxplot()
 ggplot(data, aes(Diagnosis, verbalIQ))+geom_violin()
 ggplot(data, aes(VISIT,CHI_MLU,color=Diagnosis,group=SUBJ))+geom_line()
 
+#------ Testing for significant differences between groups ------
 glm(Gender~Diagnosis,data, family = binomial)%>%summary() #Gender not significantly different
 lm(Age~Diagnosis,data)%>%summary() #ASD children about a year older than TD Children
 lm(verbalIQ~Diagnosis,data)%>%summary() #Children supposed to be matched by verbalIQ, but no...
@@ -163,9 +168,11 @@ How would you evaluate whether the model is a good model?
 ```{r}
 summary(m1)
 r.squaredGLMM(m1)
+modelr::rmse(m1, data)
 
-#m.null=lmer(CHI_MLU~Gender+(1+SUBJ|Visit), data)
+#m.null=lmer(CHI_MLU~Gender+(1+SUBJ|VISIT), data)
 #anova(m1,m.null)
+
 ```
 
 Not too good, right? Let's check whether a growth curve model is better.
@@ -173,12 +180,14 @@ Remember: a growth curve model assesses whether changes in time can be described
 First build the different models, then compare them to see which one is better
 
 ```{r}
+#------ Visit^2 ------
 data$VISIT1 = data$VISIT^2
 m2= lmer(CHI_MLU~Diagnosis+Gender+VISIT+VISIT1+(1+SUBJ|VISIT), data)
 
 summary(m2)
 r.squaredGLMM(m2)
-       
+
+#------ Visit^3 ------
 data$VISIT2 = data$VISIT^3
 m3 = lmer(CHI_MLU~Diagnosis+Gender+VISIT+VISIT1+VISIT2+(1+SUBJ|VISIT), data)
 
@@ -201,8 +210,13 @@ Linguistic development of children MLU is affected by ... [COMPLETE]
 ### Hypothesis: Parental MLU changes: i) over time, ii) according to diagnosis
 
 ```{r}
+#Plot of MOT_MLU, color signifies diagnosis
 ggplot(data, aes(VISIT,MOT_MLU,color=Diagnosis,group=SUBJ))+geom_line()
+
+#Model of hypothesis
 m4=lmer(MOT_MLU~VISIT+Diagnosis+(1+SUBJ|VISIT),data)
+
+#Evaluation
 summary(m4)
 r.squaredGLMM(m4)
 

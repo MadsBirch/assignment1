@@ -23,7 +23,7 @@ N.B. There are several datasets for this exercise, so pay attention to which one
 
 
 ```{r}
-#Load library
+#------ Load library ------ 
 library(data.table)
 library(ggplot2)
 library(stringi)
@@ -39,12 +39,17 @@ library(modelr)
 library(caret)
 library(ModelMetrics)
 
+#Cleaning the data
 
-#Load data
+#------ Load data ------
+wd=getwd()
+setwd(wd)
+
 demo_test = read.csv("demo_test.csv")
 LU_test = read.csv("LU_test.csv")
 token_test = read.csv("token_test.csv")
 
+#------ fix variables for merge ------
 #Standardizing variable names
 demo_test= setnames(demo_test,"Visit", "VISIT")
 demo_test= setnames(demo_test, "Child.ID", "SUBJ")
@@ -63,6 +68,7 @@ token_test$SUBJ  = gsub("\\.", "", token_test$SUBJ)
 demo_test= setnames(demo_test, "MullenRaw", "nonverbalIQ")
 demo_test= setnames(demo_test, "ExpressiveLangRaw", "verbalIQ")
 
+#------ Merge data ------
 #Make subsets of relevant variables
 demo_test_sub = select(demo_test, c("SUBJ", "VISIT", "Ethnicity", "Diagnosis", "Gender", "Age", "ADOS", "nonverbalIQ", "verbalIQ")) 
 LU_test_sub = select(LU_test, c("SUBJ", "VISIT", "MOT_MLU", "MOT_LUstd", "CHI_MLU", "CHI_LUstd"))
@@ -72,8 +78,7 @@ token_test_sub = select(token_test, c("SUBJ", "VISIT", "types_MOT", "types_CHI",
 datamerge1 = merge(demo_test_sub,LU_test_sub,by= c("SUBJ", "VISIT"))
 datamerge2 = merge(datamerge1, token_test_sub, by=c("SUBJ", "VISIT"))
 
-#---- Making it so that ADOS, nonVerbalIQ and verbalIQ only have their first measurements ----
-
+#------ Edit merged data ------ 
 #For these five variables select rows where VISIT==1
 small_sub=subset(select_(datamerge2,"SUBJ", "VISIT", "ADOS", "nonverbalIQ", "verbalIQ"),VISIT==1)
 
@@ -86,7 +91,6 @@ datamerge3=datamerge3[,!names(datamerge3) %in% c("VISIT","ADOS_old","nonverbalIQ
 #rename VISITS_old to VISIT
 datamerge3=dplyr::rename(datamerge3, VISIT =VISIT_old)
 
-#-------------------------------------------------------------------------
 
 #anomizing subjects by making them numbers
 datamerge3$SUBJ = as.numeric(as.factor(datamerge3$SUBJ))
@@ -98,7 +102,7 @@ datamerge3$VISIT = as.numeric(datamerge3$VISIT)
 datamerge3$Gender = mapvalues(datamerge3$Gender, "1","M")
 datamerge3$Diagnosis = mapvalues(datamerge3$Diagnosis, c("A", "B"),c("ASD", "TD"))
 
-#Write CSV file with the test data
+#------ Write CSV file with the test data ------
 write.csv(datamerge3, file = "final_test_data.csv", row.names = FALSE)
 
 
@@ -116,23 +120,26 @@ How did your models from last time perform? In this exercise you have to compare
 - optional: predictions are never certain, can you identify the uncertainty of the predictions? (e.g. google predictinterval())
 
 ```{r}
-#Load test data
+#------ Load the data ------
 test_data = read.csv("final_test_data.csv")
+data = read.csv("finaldata.csv")
 
+#------ Use model on both test and training data ------
 # removed gender because test data only had males
 #Model on training data
 m6=lmer(CHI_MLU~Diagnosis*VISIT+ADOS+MOT_MLU+(1+SUBJ|VISIT),data = data)
+summary(m6)
+modelr::rmse(m6, data) #note that both modelr and modelmetrics have an rmse function
 
 #Model on test data
-m7=lmer(CHI_MLU~Diagnosis*VISIT+ADOS+MOT_MLU+(1+SUBJ|VISIT),data = data_test)
+Predicted=predict(m6, type='response')
+ModelMetrics::rmse(test_data$CHI_MLU, Predicted)
 
-#Summaries of the models
-summary(m6)
-summary(m7)
 
-#R^2 of the models
-#rmse(m6, data)
-#rmse(m7, data_test)
+
+
+#m7=lmer(CHI_MLU~Diagnosis*VISIT+ADOS+MOT_MLU+(1+SUBJ|VISIT),data = test_data)
+#modelr::rmse(m7, data_test)
 
 ```
 
@@ -158,13 +165,12 @@ In this exercise you have to use cross-validation to calculate the predictive er
 ted predictive error against the actual predictive error on the test data
 
 ```{r}
-# merging train data and test data
+# ------ Merging train data and test data ------
 #test_data$SUBJ = test_data$SUBJ + 61
-
 full_data = rbind(data, test_data)
 
 
-#----------- Divide data ---------------
+#------ Fold data ------
 #Create fold with unique SUBJ
 folds=createFolds(unique(full_data$SUBJ), k = 4)
 
@@ -177,37 +183,43 @@ cv_empty=matrix(ncol=3, nrow=4)
 n=1
 
 for (k in folds){
-  #---------select data - Select 3/4 of the dataset. data_train---------
+  #------ Split into training and test data ------ 
   #Create training dataset, data not in fold k
   data_train=subset(full_data,!(SUBJ %in% k))
   #Create test dataset, data in fold k
   data_test=subset(full_data,SUBJ %in% k)
   
-  #--------train model - apply model to data_train----------------
+  #------ train model - apply model to data_train ------
   model= lmer(CHI_MLU~Diagnosis*VISIT+Gender+ADOS+MOT_MLU+verbalIQ+(1+VISIT|SUBJ),data_train)
   #Make predictions based on model
   Prediction=predict(model, type='response')
   #Prints the prediction against the test data
-  results_train=rmse(data_train$CHI_MLU, Prediction)
+  results_train=ModelMetrics::rmse(data_train$CHI_MLU, Prediction)
   
-  #-------test the model - test model on data_test (last quarter)------
+  #------ test the model - test model on data_test (last quarter) ------
   #Make predictions based on modeVIS
   Prediction_test=predict(model, data_test, type='response', allow.new.levels = TRUE)
   #
-  results_test=rmse(data_test$CHI_MLU, Prediction_test)
+  results_test=ModelMetrics::rmse(data_test$CHI_MLU, Prediction_test)
   
-  #--------save the performance----------------
+  #------ save the performance ------ 
   #Fills out the kth row in cv_empty with iteration and rmse's
   cv_empty[n,]=cbind(n,results_train,results_test)
   n=n+1
   }
 
-#-----------Make the matrix into a data frame-------------
+#------ Make the matrix into a data frame ------ 
 cv_results=data.frame(cv_empty)
 #Rename variables 
 cv_results=setnames(cv_results,"X1", "iteration")
 cv_results=setnames(cv_results,"X2", "train")
 cv_results=setnames(cv_results,"X3", "test")
+
+
+#------ Model on full data ------
+m7= lmer(CHI_MLU~Diagnosis*VISIT+Gender+ADOS+MOT_MLU+verbalIQ+(1+VISIT|SUBJ),full_data)
+summary(m7)
+modelr::rmse(m7, full_data)
 
 
 # Funilly enough, diagnosis and ADOS are correlated hence we use an interaction effect in the model
@@ -230,19 +242,22 @@ You want to evaluate:
 - how does the child fare compared to the model predictions at Visit 6? Is the child below or above expectations? (tip: use the predict() function on Bernie's data only and compare the prediction with the actual performance of the child)
 
 ```{r}
-# Creating a dataset without bernie and one with ONLY bernie (Bernie is number 63)
+#------ Data ------
+#Creating a dataset without bernie (Bernie is number 63)
 no_bernie_data = subset(full_data, (SUBJ != 63))
+#ONLY bernie
 lonely_bernie_data = subset(full_data, (SUBJ == 63))
 
+#----- Create model and make average TD child at each visit ------
 # creating final model
 model_full = lmer(CHI_MLU~Diagnosis*VISIT+Gender+ADOS+MOT_MLU+verbalIQ+(1+VISIT|SUBJ),no_bernie_data)
 
+#Get betas
 summary(model_full)
 
 # getting means of variables for the TD kids, used for input as "x" in model
 mean(full_data$ADOS[full_data$Diagnosis == "TD"])
 mean(full_data$MOT_MLU[full_data$VISIT==6])
-
 mean(full_data$verbalIQ[full_data$Diagnosis == "TD"])
 
 # Calculating predicted mean of TD kids per visit
@@ -258,24 +273,26 @@ MLU_visit5 = 0.71 + 0.72*1 + 0.06*5 + 0.08*1 - 0.02*0.78 + 0.34*4.13 + 0.06*19.8
 
 MLU_visit6 = 0.71 + 0.72*1 + 0.06*6 + 0.08*1 - 0.02*0.78 + 0.34*4.09 + 0.06*19.81 + 0.24*1*6
 
-# selecting bernie data and MLU
-select_bernie = full_data %>%
-  filter(SUBJ == 63)%>%
-  select(CHI_MLU)
-
 # making a list of MLU of TD kids at the different visits as calculated above.
 MLU_list = c(MLU_visit1, MLU_visit2, MLU_visit3, MLU_visit4, MLU_visit5, MLU_visit6)
 
-# getting the difference between Bernie and the TD over visit in MLU
-select_bernie[, 1] - MLU_list
+
+#------ Bernie vs TD & Bernie vs Prediction ------
+
+#getting the difference in MLU between Bernie and the TD per visit
+lonely_bernie_data[,12] - MLU_list #Worse than average TD
+
+#getting the difference between Bernie and his predicted score
+Prediction=predict(model_full, lonely_bernie_data[6,], allow.new.levels = TRUE)
+lonely_bernie_data[6,12]-Prediction #Better than expected
+
+
+
+
+
 
 # bernie MLU at visit 6
-bernie_MLU_visit6 = 0.71 + 0.72*0 + 0.06*6 + 0.08*1 - 0.02*7 + 0.34*3.82 + 0.06*28 + 0.24*0*6
-
-
-Prediction=predict(model_full, lonely_bernie_data[6,], allow.new.levels = TRUE)
-
-select_bernie[6,]-Prediction
+#bernie_MLU_visit6 = 0.71 + 0.72*0 + 0.06*6 + 0.08*1 - 0.02*7 + 0.34*3.82 + 0.06*28 + 0.24*0*6
 
 ```
 
