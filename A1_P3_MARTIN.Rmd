@@ -42,8 +42,7 @@ library(ModelMetrics)
 #Cleaning the data
 
 #------ Load data ------
-wd=getwd()
-setwd(wd)
+setwd(getwd())
 
 demo_test = read.csv("demo_test.csv")
 LU_test = read.csv("LU_test.csv")
@@ -125,9 +124,8 @@ test_data = read.csv("final_test_data.csv")
 data = read.csv("finaldata.csv")
 
 #------ Use model on both test and training data ------
-# removed gender because test data only had males
 #Model on training data
-m6=lmer(CHI_MLU~Diagnosis*VISIT+ADOS+MOT_MLU+(1+SUBJ|VISIT),data = data)
+m6=lmer(CHI_MLU~Diagnosis*VISIT+Gender+ADOS+MOT_MLU+(1+VISIT|SUBJ),data = data)
 summary(m6)
 modelr::rmse(m6, data) #note that both modelr and modelmetrics have an rmse function
 
@@ -138,8 +136,6 @@ ModelMetrics::rmse(test_data$CHI_MLU, Predicted)
 
 
 
-#m7=lmer(CHI_MLU~Diagnosis*VISIT+ADOS+MOT_MLU+(1+SUBJ|VISIT),data = test_data)
-#modelr::rmse(m7, data_test)
 
 ```
 
@@ -167,7 +163,7 @@ ted predictive error against the actual predictive error on the test data
 ```{r}
 # ------ Merging train data and test data ------
 #test_data$SUBJ = test_data$SUBJ + 61
-full_data = rbind(data, test_data)
+#full_data = rbind(data, test_data)
 
 
 #------ Fold data ------

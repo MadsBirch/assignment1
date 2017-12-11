@@ -21,14 +21,14 @@ How much power does your study have (if your model estimates are quite right)?
 
 ```{r}
 #------ WD ------
-wd=getwd()
-setwd(wd)
+setwd(getwd())
 
 #------ Load library ------ 
 library(simr)
 library(MASS)
 
 #------ favorite model ------
+#naming is weird, but full is used for finding the power for the minimum effect size of interest, sub for power calculation
 model_full = lmer(CHI_MLU~Diagnosis*VISIT+Gender+ADOS+MOT_MLU+verbalIQ+(1+VISIT|SUBJ),full_data)
 
 model_sub = lmer(CHI_MLU~Diagnosis+VISIT+Gender+ADOS+MOT_MLU+verbalIQ+(1+VISIT|SUBJ),full_data)
@@ -73,12 +73,11 @@ How would you perform a more conservative power analysis?
 - Identify and justify a minimum effect size for each of your relevant effects
 - [GitHub] take the model from exercise 1 and replace the effects with the minimum effect size that you'd accept.
 - [GitHub] assess the power curve by Child.ID, identifying an ideal number of participants to estimate each effect
-- OPTIONAL if your power estimates do not reach an acceptable threshold simulate additional participants and repeat the previous analysis
 - Report the power analysis and comment on what you can (or cannot) use its estimates for.
 
 ```{r}
 
-# minimum effects sizes for each fixed effect
+# minimum effects sizes for each fixed effect. Since our effects were already very small, we just used 0.1 for all of them.
 
 fixef(model_full)["VISIT"] = 0.1
 fixef(model_full)["DiagnosisTD"] = 0.1
@@ -88,34 +87,59 @@ fixef(model_full)["MOT_MLU"] = 0.1
 fixef(model_full)["verbalIQ"] = 0.1
 
 # assesing power for each fixed effect by SUBJ
-powerCurveV = powerCurve(model_sub, fixed("VISIT"),along="SUBJ", nsim=5)
+powerCurveV = powerCurve(model_sub, fixed("VISIT"),along="SUBJ", nsim=20)
 powerCurveV
 
-powerCurveD = powerCurve(model_sub, fixed("DiagnosisTD"),along="SUBJ", nsim=5)
+powerCurveD = powerCurve(model_sub, fixed("DiagnosisTD"),along="SUBJ", nsim=20)
 powerCurveD
 
-powerCurveVD = powerCurve(model_full, fixed("VISIT:DiagnosisTD"),along="SUBJ", nsim=5)
+powerCurveVD = powerCurve(model_full, fixed("VISIT:DiagnosisTD"),along="SUBJ", nsim=20)
 powerCurveVD
 
-powerCurveG = powerCurve(model_full, fixed("GenderM"),along="SUBJ", nsim=5)
+powerCurveG = powerCurve(model_full, fixed("GenderM"),along="SUBJ", nsim=20)
 powerCurveG
 
-powerCurveA = powerCurve(model_full, fixed("ADOS"),along="SUBJ", nsim=5)
+powerCurveA = powerCurve(model_full, fixed("ADOS"),along="SUBJ", nsim=20)
 powerCurveA
 
-powerCurveM = powerCurve(model_full, fixed("MOT_MLU"),along="SUBJ", nsim=5)
+powerCurveM = powerCurve(model_full, fixed("MOT_MLU"),along="SUBJ", nsim=20)
 powerCurveM
 
-powerCurveVer = powerCurve(model_full, fixed("verbalIQ"),along="SUBJ", nsim=5)
+powerCurveVer = powerCurve(model_full, fixed("verbalIQ"),along="SUBJ", nsim=20)
 powerCurveVer
 
+```
+
+
+### Exercise 3
+
+Assume you have only the resources to collect 30 kids (15 with ASD and 15 TDs). Identify the power for each relevant effect and discuss whether it's worth to run the study and why.
+
+```{r}
+
+# Outputs of power analysis
+powerCurveV # 100% power at 30 particpants
+powerCurveD # 0% power at 30 particpants
+powerCurveG # 0% power at 30 particpants
+powerCurveA # 0% power at 30 particpants
+powerCurveM # 60% power at 30 particpants
+powerCurveVer # 100 power at 30 particpants
+powerCurveVD # 0 at 30 paticipants
+
+# All in all, it only makes sense to run the study on 30 participants if we were interested in only visit, gender and verbal IQ. Since we're interested in the effect of diagnosis, the study should't be run.
+
+```
+
+
+- OPTIONAL if your power estimates do not reach an acceptable threshold simulate additional participants and repeat the previous analysis
+
+```{r}
+#------ analysis using simulated data ------
 # simulating new data
 participants = 200
 visits = 6
 model = model_full
 
-
-#------ analysis using simulated data ------
 sim_data = createNewData(participants, visits, model)
 
 
@@ -128,7 +152,6 @@ model_sim = model_full = lmer(CHI_MLU~Diagnosis*Visit+Gender+ADOS+MOT_MLU+verbal
 
 ### Riccardo's clumsy function to simulate new participants
 ### TO DO points are only notes for myself, so not part of the assignment
-
 createNewData <- function (participants,visits,model){
   # participants is the number of subjects
   # visits is the number of visits
@@ -177,28 +200,5 @@ createNewData <- function (participants,visits,model){
 }
 
 
-
 ```
-
-
-### Exercise 3
-
-Assume you have only the resources to collect 30 kids (15 with ASD and 15 TDs). Identify the power for each relevant effect and discuss whether it's worth to run the study and why.
-
-```{r}
-
-# Outputs of power analysis
-powerCurveV # 100% power at 30 particpants
-powerCurveD # 0% power at 30 particpants
-powerCurveG # 0% power at 30 particpants
-powerCurveA # 0% power at 30 particpants
-powerCurveM # 60% power at 30 particpants
-powerCurveVer # 100 power at 30 particpants
-
-# All in all, it only makes sense to run the study on 30 participants if we were interested in only visit, gender and verbal IQ. Since we're interested in the effect of diagnosis, the study should't be run.
-
-```
-
-
-
 

@@ -111,10 +111,7 @@ library(MuMIn)
 
 ```{r Load Data}
 #------ working directory ------
-wd=getwd()
-setwd(wd)
-
-wd
+setwd(getwd())
 
 #------ load data ------
 data = read.csv("finaldata.csv")
@@ -160,7 +157,7 @@ Remember to plot the data first and then to run a statistical test.
 - Which variable(s) should be included as random factors?
 
 ```{r}
-m1=lmer(CHI_MLU~Diagnosis+Gender+VISIT+(1+SUBJ|VISIT), data)
+m1=lmer(CHI_MLU~Diagnosis+Gender+VISIT+(1+VISIT|SUBJ), data)
 ```
 
 How would you evaluate whether the model is a good model?
@@ -169,9 +166,6 @@ How would you evaluate whether the model is a good model?
 summary(m1)
 r.squaredGLMM(m1)
 modelr::rmse(m1, data)
-
-#m.null=lmer(CHI_MLU~Gender+(1+SUBJ|VISIT), data)
-#anova(m1,m.null)
 
 ```
 
@@ -182,14 +176,14 @@ First build the different models, then compare them to see which one is better
 ```{r}
 #------ Visit^2 ------
 data$VISIT1 = data$VISIT^2
-m2= lmer(CHI_MLU~Diagnosis+Gender+VISIT+VISIT1+(1+SUBJ|VISIT), data)
+m2= lmer(CHI_MLU~Diagnosis+Gender+VISIT+VISIT1+(1+VISIT|SUBJ), data)
 
 summary(m2)
 r.squaredGLMM(m2)
 
 #------ Visit^3 ------
 data$VISIT2 = data$VISIT^3
-m3 = lmer(CHI_MLU~Diagnosis+Gender+VISIT+VISIT1+VISIT2+(1+SUBJ|VISIT), data)
+m3 = lmer(CHI_MLU~Diagnosis+Gender+VISIT+VISIT1+VISIT2+(1+VISIT|SUBJ), data)
 
 summary(m3)
 r.squaredGLMM(m3)
@@ -214,7 +208,7 @@ Linguistic development of children MLU is affected by ... [COMPLETE]
 ggplot(data, aes(VISIT,MOT_MLU,color=Diagnosis,group=SUBJ))+geom_line()
 
 #Model of hypothesis
-m4=lmer(MOT_MLU~VISIT+Diagnosis+(1+SUBJ|VISIT),data)
+m4=lmer(MOT_MLU~VISIT+Diagnosis+(1+VISIT|SUBJ),data)
 
 #Evaluation
 summary(m4)
@@ -241,7 +235,7 @@ r.squaredGLMM(m5)
 # We add MOT_MLU to add the linguistic environment of the kid
 
 
-m6=lmer(CHI_MLU~Diagnosis*VISIT+Gender+ADOS+MOT_MLU+(1+SUBJ|VISIT),data = data)
+m6=lmer(CHI_MLU~Diagnosis*VISIT+Gender+ADOS+MOT_MLU+(1+VISIT|SUBJ),data = data)
 summary(m6)
 r.squaredGLMM(m6)
 

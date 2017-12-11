@@ -39,8 +39,7 @@ Set the working directory (the directory with your data and code for these assig
 
 ```{r}
 #------ Working directory ------
-wd=getwd()
-setwd(wd)
+setwd(getwd())
 
 ```
 
@@ -80,7 +79,9 @@ Tip: Look into the package data.table, or google "how to rename variables in R"
 
 
 ```{r}
+#eye balled the data, yes they are messy
 
+#Change column names to match the other data sets
 dataDemo= setnames(dataDemo,"Visit", "VISIT")
 
 dataDemo= setnames(dataDemo, "Child.ID", "SUBJ")
@@ -91,7 +92,7 @@ dataDemo= setnames(dataDemo, "Child.ID", "SUBJ")
 Tip: There is a package called stringr, which will be very handy for you also in future assignments. We will return to this package later, but for now use the str_extract () to extract only the number from the variable Visit in each data set. Tip: type ?str_extract() after loading the library, for examples of how to use it.
 
 ```{r}
-#\\d is a regular expression meaning digit, so only the digits are extracted
+#\\d is a regular expression meaning digit, so only the digits are extracted. This makes all visit into numbers
 dataDemo$VISIT= str_extract(dataDemo$VISIT, "\\d")
 dataLU$VISIT= str_extract(dataLU$VISIT, "\\d")
 dataToken$VISIT= str_extract(dataToken$VISIT, "\\d")
@@ -154,7 +155,7 @@ Tip: Merge only works for two data frames at the time.
 Tip: Check the number of observations in the datasets before and after merging. What is going on?
 
 ```{r}
-#Merge the datasets
+#Merge the three data sets
 datamerge1 = merge(demoSub,LUSub,by= c("SUBJ", "VISIT"))
 datamerge2 = merge(datamerge1, TokenSub, by=c("SUBJ", "VISIT"))
 
@@ -172,6 +173,8 @@ Tip: the final dataset should have as many rows as the the old one.
 
 
 ```{r}
+#Fix the NA variables using the subsets created above
+
 #For these five variables select rows where VISIT==1
 small_sub=subset(select_(datamerge2,"SUBJ", "VISIT", "ADOS", "nonverbalIQ", "verbalIQ"),VISIT==1)
 
@@ -246,6 +249,7 @@ unique(filter_1$SUBJ)
 
 filter_2 = datamerge3 %>% 
   filter(VISIT == 1, CHI_MLU < 1.5)
+
 filter_2$SUBJ 
 
 # filter 3
@@ -255,7 +259,6 @@ filter_3=datamerge3%>%
   filter(max(VISIT) < 6)
 
 unique(filter_3$SUBJ)
-
 
 
 ```
@@ -271,7 +274,7 @@ USING ARRANGE
 # 1
 datamerge3 %>%
   filter(VISIT == 6) %>%
-  arrange(desc(CHI_MLU))
+  arrange(desc(CHI_MLU)) #desc means descending, standard is ascending
 
 # 2
 
@@ -307,30 +310,6 @@ USING MUTATE, SUMMARISE and PIPES
 3. The solution to task above enables us to assess the average amount of words produced by each child. Why don't we just use these average values to describe the language production of the children? What is the advantage of keeping all the data?
 
 ```{r}
-
-# We could not solve this 
-
-# 1
-
-# Data = mutate(Data, GrandAvg = mean(tokens_CHI))
-
-#datamerge3 = datamerge2 %>% 
- # mutate(MEAN_VISIT_MLU = by(datamerge2$CHI_MLU, datamerge2$VISIT, mean))
- 
-#by(datamerge2$CHI_MLU, datamerge2$VISIT, mean)
- 
-# 2
-
-#ChiAvg_AcrossVisits = Data %>%
- # group_by(Child.ID)%>%
-  #summarise(ChiAvgWord = mean(tokens_CHI))%>%
-  #merge(Data) 
-
-#datamerge2 = datamerge2 %>%
- # group_by(SUBJ) %>%
-  #summarise(MEAN_CHILD_MLU = mean(CHI_MLU))
-
-# 3
 
 #1
 datamerge3 = mutate(datamerge3, GrandAvg = mean(tokens_CHI))
